@@ -1,0 +1,24 @@
+{
+    "files.exclude": {
+        "**/.git": true,
+        "**/.tx": true,
+        "**/autom4te.cache": true,
+        "**/build-aux": true,
+        "**/dash-docs": true,
+        "**/db4": true,
+        "**/depends": true,
+        "**/contrib": true,
+        "**/doc": true,
+        "**/qa": true,
+        "**/*.log": true,
+        "**/*.sh": true,
+        "**/.libs": true,
+        "**/.deps": true,
+        "**/*.o": true,
+        "**/*.a": true,
+        "**/*.lo": true,
+        
+        "**/share": true
+    },
+    "C_Cpp.errorSquiggles": "Disabled",
+}
