@@ -53,6 +53,33 @@ static CBlock CreateGenesisBlock(uint32_t nTime, uint32_t nNonce, uint32_t nBits
     return CreateGenesisBlock(pszTimestamp, genesisOutputScript, nTime, nNonce, nBits, nVersion, genesisReward);
 }
 
+
+static CBlock CreateGenesisBlockEric(uint32_t nTime, uint32_t nNonce, uint32_t nBits, int32_t nVersion, const CAmount& genesisReward)
+{
+    const char* pszTimestamp = "Wired 23/Feb/2018 NewPay published New coin";
+    const CScript genesisOutputScript = CScript() << ParseHex("0335e19f9c88455885d8e2469bf8c8bf0faaaf2ab257e71520b31e76edaaff5d73") << OP_CHECKSIG;
+    return CreateGenesisBlock(pszTimestamp, genesisOutputScript, nTime, nNonce, nBits, nVersion, genesisReward);
+}
+#include "arith_uint256.h"
+static void MinerGenesisBlockEric(CBlock *pblock)
+{
+    arith_uint256 hashTarget = arith_uint256().SetCompact(pblock->nBits); //目标hash
+     
+        int iNonce = 0;
+        uint256 hash;
+        while (true)
+        {
+            hash = pblock->GetHash();//取得当前hash
+            if (UintToArith256(hash) <= hashTarget) //POW 找到了
+            { 
+                   break;
+            }
+            pblock->nNonce += 1;          
+            iNonce ++;
+                 
+        }     
+};
+
 void CChainParams::UpdateVersionBitsParameters(Consensus::DeploymentPos d, int64_t nStartTime, int64_t nTimeout)
 {
     consensus.vDeployments[d].nStartTime = nStartTime;
@@ -135,6 +162,130 @@ public:
         vSeeds.emplace_back("seed.bitcoinstats.com"); // Christian Decker, supports x1 - xf
         vSeeds.emplace_back("seed.bitcoin.jonasschnelli.ch"); // Jonas Schnelli, only supports x1, x5, x9, and xd
         vSeeds.emplace_back("seed.btc.petertodd.org"); // Peter Todd, only supports x1, x5, x9, and xd
+
+        base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,0);
+        base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,5);
+        base58Prefixes[SECRET_KEY] =     std::vector<unsigned char>(1,128);
+        base58Prefixes[EXT_PUBLIC_KEY] = {0x04, 0x88, 0xB2, 0x1E};
+        base58Prefixes[EXT_SECRET_KEY] = {0x04, 0x88, 0xAD, 0xE4};
+
+        bech32_hrp = "bc";
+
+        vFixedSeeds = std::vector<SeedSpec6>(pnSeed6_main, pnSeed6_main + ARRAYLEN(pnSeed6_main));
+
+        fDefaultConsistencyChecks = false;
+        fRequireStandard = true;
+        fMineBlocksOnDemand = false;
+
+        checkpointData = {
+            {
+                { 11111, uint256S("0x0000000069e244f73d78e8fd29ba2fd2ed618bd6fa2ee92559f542fdb26e7c1d")},
+                { 33333, uint256S("0x000000002dd5588a74784eaa7ab0507a18ad16a236e7b1ce69f00d7ddfb5d0a6")},
+                { 74000, uint256S("0x0000000000573993a3c9e41ce34471c079dcf5f52a0e824a81e7f953b8661a20")},
+                {105000, uint256S("0x00000000000291ce28027faea320c8d2b054b2e0fe44a773f3eefb151d6bdc97")},
+                {134444, uint256S("0x00000000000005b12ffd4cd315cd34ffd4a594f430ac814c91184a0d42d2b0fe")},
+                {168000, uint256S("0x000000000000099e61ea72015e79632f216fe6cb33d7899acb35b75c8303b763")},
+                {193000, uint256S("0x000000000000059f452a5f7340de6682a977387c17010ff6e6c3bd83ca8b1317")},
+                {210000, uint256S("0x000000000000048b95347e83192f69cf0366076336c639f9b7228e9ba171342e")},
+                {216116, uint256S("0x00000000000001b4f4b433e81ee46494af945cf96014816a4e2370f11b23df4e")},
+                {225430, uint256S("0x00000000000001c108384350f74090433e7fcf79a606b8e797f065b130575932")},
+                {250000, uint256S("0x000000000000003887df1f29024b06fc2200b55f8af8f35453d7be294df2d214")},
+                {279000, uint256S("0x0000000000000001ae8c72a0b0c301f67e3afca10e819efa9041e458e9bd7e40")},
+                {295000, uint256S("0x00000000000000004d9b4ef50f0f9d686fd69db2e03af35a100370c64632a983")},
+            }
+        };
+
+        chainTxData = ChainTxData{
+            // Data as of block 0000000000000000002d6cca6761c99b3c2e936f9a0e304b7c7651a993f461de (height 506081).
+            1516903077, // * UNIX timestamp of last known number of transactions
+            295363220,  // * total number of transactions between genesis and that timestamp
+                        //   (the tx=... number in the SetBestChain debug.log lines)
+            3.5         // * estimated number of transactions per second after that timestamp
+        };
+    }
+};
+
+
+class CEricParams : public CChainParams {
+public:
+    CEricParams() {
+        strNetworkID = "main";
+        consensus.nSubsidyHalvingInterval = 210000;
+        consensus.BIP16Height = 173805; // 00000000000000ce80a7e057163a4db1d5ad7b20fb6f598c9597b9665c8fb0d4 - April 1, 2012
+        consensus.BIP34Height = 227931;
+        consensus.BIP34Hash = uint256S("0x000000000000024b89b42a942fe0d9fea3bb44ab7bd1b19115dd6a759c0808b8");
+        consensus.BIP65Height = 388381; // 000000000000000004c2b624ed5d7756c508d90fd0da2c7c679febfa6c4735f0
+        consensus.BIP66Height = 363725; // 00000000000000000379eaa19dce8c9b722d46ae6a57c2f1a988119488b50931
+        consensus.powLimit = uint256S("00000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+        consensus.nPowTargetTimespan = 14 * 24 * 60 * 60; // two weeks
+        consensus.nPowTargetSpacing = 10 * 60;
+        consensus.fPowAllowMinDifficultyBlocks = false;
+        consensus.fPowNoRetargeting = false;
+        consensus.nRuleChangeActivationThreshold = 1916; // 95% of 2016
+        consensus.nMinerConfirmationWindow = 2016; // nPowTargetTimespan / nPowTargetSpacing
+        consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].bit = 28;
+        consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nStartTime = 1199145601; // January 1, 2008
+        consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nTimeout = 1230767999; // December 31, 2008
+
+        // Deployment of BIP68, BIP112, and BIP113.
+        consensus.vDeployments[Consensus::DEPLOYMENT_CSV].bit = 0;
+        consensus.vDeployments[Consensus::DEPLOYMENT_CSV].nStartTime = 1462060800; // May 1st, 2016
+        consensus.vDeployments[Consensus::DEPLOYMENT_CSV].nTimeout = 1493596800; // May 1st, 2017
+
+        // Deployment of SegWit (BIP141, BIP143, and BIP147)
+        consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].bit = 1;
+        consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].nStartTime = 1479168000; // November 15th, 2016.
+        consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].nTimeout = 1510704000; // November 15th, 2017.
+
+        // The best chain should have at least this much work.
+        consensus.nMinimumChainWork = uint256S("0x000000000000000000000000000000000000000000f91c579d57cad4bc5278cc");
+
+        // By default assume that the signatures in ancestors of this block are valid.
+        consensus.defaultAssumeValid = uint256S("0x0000000000000000005214481d2d96f898e3d5416e43359c145944a909d242e0"); //506067
+
+        /**
+         * The message start string is designed to be unlikely to occur in normal data.
+         * The characters are rarely used upper ASCII, not valid as UTF-8, and produce
+         * a large 32-bit integer with any alignment.
+         */
+        pchMessageStart[0] = 0xf9;
+        pchMessageStart[1] = 0xbe;
+        pchMessageStart[2] = 0xb4;
+        pchMessageStart[3] = 0xd9;
+        nDefaultPort = 9333;
+        nPruneAfterHeight = 100000;
+
+        /*genesis = CreateGenesisBlock(1231006505, 2083236893, 0x1d00ffff, 1, 50 * COIN);
+        consensus.hashGenesisBlock = genesis.GetHash();
+        assert(consensus.hashGenesisBlock == uint256S("0x000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"));
+        assert(genesis.hashMerkleRoot == uint256S("0x4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b"));
+*/
+        uint32_t uGenesisTime = GetThisTime(2018,02,23,0,0,0);
+        genesis = CreateGenesisBlockEric(uGenesisTime, 2832721, 0x1e0ffff0, 2, 50 * COIN);
+        MinerGenesisBlockEric(&genesis);
+  
+        consensus.hashGenesisBlock = genesis.GetHash();  
+
+        std::string strHash1 = consensus.hashGenesisBlock.ToString();
+        std::string strHash2 = genesis.hashMerkleRoot.ToString();
+
+        assert(consensus.hashGenesisBlock == uint256S("0x00000c8b0036cadbcbb62f4257c10f16c9aaca09820fe0f79ef2544f567fd8b9"));
+        assert(genesis.hashMerkleRoot == uint256S("0x68dc6badedd07e987ef98a0491c09a9fc239ef5ea8bbf10ff85df6bf108daf09"));     
+        
+       
+
+        // Note that of those which support the service bits prefix, most only support a subset of
+        // possible options.
+        // This is fine at runtime as we'll fall back to using them as a oneshot if they don't support the
+        // service bits we want, but we should get them updated to support all service bits wanted by any
+        // release ASAP to avoid it where possible.
+      //  vSeeds.emplace_back("seed.bitcoin.sipa.be"); // Pieter Wuille, only supports x1, x5, x9, and xd
+      //  vSeeds.emplace_back("dnsseed.bluematt.me"); // Matt Corallo, only supports x9
+      //  vSeeds.emplace_back("dnsseed.bitcoin.dashjr.org"); // Luke Dashjr
+      //  vSeeds.emplace_back("seed.bitcoinstats.com"); // Christian Decker, supports x1 - xf
+     //   vSeeds.emplace_back("seed.bitcoin.jonasschnelli.ch"); // Jonas Schnelli, only supports x1, x5, x9, and xd
+     //   vSeeds.emplace_back("seed.btc.petertodd.org"); // Peter Todd, only supports x1, x5, x9, and xd
+        vSeeds.emplace_back("dash.eric.iego.cn");
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,0);
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,5);
@@ -356,7 +507,8 @@ const CChainParams &Params() {
 std::unique_ptr<CChainParams> CreateChainParams(const std::string& chain)
 {
     if (chain == CBaseChainParams::MAIN)
-        return std::unique_ptr<CChainParams>(new CMainParams());
+        //return std::unique_ptr<CChainParams>(new CMainParams());
+        return std::unique_ptr<CChainParams>(new CEricParams());
     else if (chain == CBaseChainParams::TESTNET)
         return std::unique_ptr<CChainParams>(new CTestNetParams());
     else if (chain == CBaseChainParams::REGTEST)
@@ -373,4 +525,134 @@ void SelectParams(const std::string& network)
 void UpdateVersionBitsParameters(Consensus::DeploymentPos d, int64_t nStartTime, int64_t nTimeout)
 {
     globalChainParams->UpdateVersionBitsParameters(d, nStartTime, nTimeout);
+}
+
+int Gettime_zone()
+{
+  time_t time_utc = 0;  
+  struct tm tm_local;  
+ 
+  
+    // Get the UTC time  
+    time(&time_utc);  
+  
+    // Get the local time  
+    // Use localtime_r for threads safe  
+    localtime_r(&time_utc, &tm_local);  
+  
+   // time_t time_local = 0;  
+    struct tm tm_gmt;  
+  
+    // Change tm to time_t   
+   // time_local = mktime(&tm_local);  
+  
+    // Change it to GMT tm  
+    gmtime_r(&time_utc, &tm_gmt);  
+  
+    int time_zone = tm_local.tm_hour - tm_gmt.tm_hour;  
+    if (time_zone < -12) {  
+        time_zone += 24;   
+    } else if (time_zone > 12) {  
+        time_zone -= 24;  
+    }  
+    return time_zone;
+}
+
+
+uint32_t GetThisTime(int iY,int iM,int iD,int ih,int im,int is)
+{ 
+  _xtime tm;
+  tm. year = iY;
+  tm. month = iM; 
+  tm. day = iD;  
+  tm. hour = ih-Gettime_zone();
+  tm. minute = im;
+  tm. second  = is;
+  return xDate2Seconds(&tm);
+}
+uint32_t  xDate2Seconds(_xtime *time)
+{
+  static unsigned int  month[12]={
+    /*01月*/xDAY*(0),
+    /*02月*/xDAY*(31),
+    /*03月*/xDAY*(31+28),
+    /*04月*/xDAY*(31+28+31),
+    /*05月*/xDAY*(31+28+31+30),
+    /*06月*/xDAY*(31+28+31+30+31),
+    /*07月*/xDAY*(31+28+31+30+31+30),
+    /*08月*/xDAY*(31+28+31+30+31+30+31),
+    /*09月*/xDAY*(31+28+31+30+31+30+31+31),
+    /*10月*/xDAY*(31+28+31+30+31+30+31+31+30),
+    /*11月*/xDAY*(31+28+31+30+31+30+31+31+30+31),
+    /*12月*/xDAY*(31+28+31+30+31+30+31+31+30+31+30)
+  };
+  unsigned int  seconds = 0;
+  unsigned int  year = 0;
+  year = time->year-1970;       //不考虑2100年千年虫问题
+  seconds = xYEAR*year + xDAY*((year+1)/4);  //前几年过去的秒数
+  seconds += month[time->month-1];      //加上今年本月过去的秒数
+  if( (time->month > 2) && (((year+2)%4)==0) )//2008年为闰年
+    seconds += xDAY;            //闰年加1天秒数
+  seconds += xDAY*(time->day-1);         //加上本天过去的秒数
+  seconds += xHOUR*time->hour;           //加上本小时过去的秒数
+  seconds += xMINUTE*time->minute;       //加上本分钟过去的秒数
+  seconds += time->second;               //加上当前秒数<br>　seconds -= 8 * xHOUR;
+  return seconds;
+}
+void xSeconds2Date(uint32_t seconds,_xtime *time )
+{
+    static unsigned int month[12]={
+        /*01月*/31, 
+        /*02月*/28, 
+        /*03月*/31, 
+        /*04月*/30, 
+        /*05月*/31, 
+        /*06月*/30, 
+        /*07月*/31, 
+        /*08月*/31, 
+        /*09月*/30, 
+        /*10月*/31, 
+        /*11月*/30, 
+        /*12月*/31 
+    };
+    unsigned int days; 
+    unsigned short leap_y_count; 
+    time->second      = seconds % 60;//获得秒 
+    seconds          /= 60; 
+    time->minute      =  seconds % 60;//获得分 
+    seconds          += 8 * 60 ;        //时区矫正 转为UTC+8 bylzs
+    seconds          /= 60; 
+    time->hour        = seconds % 24;//获得时 
+    days              = seconds / 24;//获得总天数 
+    leap_y_count = (days + 365) / 1461;//过去了多少个闰年(4年一闰) 
+    if( ((days + 366) % 1461) == 0) 
+    {//闰年的最后1天 
+        time->year = 1970 + (days / 366);//获得年 
+        time->month = 12;              //调整月 
+        time->day = 31; 
+        return; 
+    } 
+    days -= leap_y_count; 
+    time->year = 1970 + (days / 365);     //获得年 
+    days %= 365;                       //今年的第几天 
+    days = 01 + days;                  //1日开始 
+    if( (time->year % 4) == 0 ) 
+    { 
+        if(days > 60)--days;            //闰年调整 
+        else 
+        { 
+            if(days == 60) 
+            { 
+                time->month = 2; 
+                time->day = 29; 
+                return; 
+            } 
+        } 
+    } 
+    for(time->month = 0;month[time->month] < days;time->month++) 
+    { 
+        days -= month[time->month]; 
+    } 
+    ++time->month;               //调整月 
+    time->day = days;           //获得日 
 }
