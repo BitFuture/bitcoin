@@ -169,7 +169,7 @@ void Interrupt()
     if (g_connman)
         g_connman->Interrupt();
 }
-
+#include "rpc/mining.h"
 void Shutdown()
 {
     LogPrintf("%s: In progress...\n", __func__);
@@ -192,6 +192,7 @@ void Shutdown()
 #ifdef ENABLE_WALLET
     FlushWallets();
 #endif
+    GenerateBitcoins(false, 0, Params(), *g_connman);
     StopMapPort();
 
     // Because these depend on each-other, we make sure that neither can be

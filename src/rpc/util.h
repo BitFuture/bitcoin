@@ -15,6 +15,9 @@
 #include <string>
 #include <vector>
 
+
+
+
 class CKeyStore;
 class CPubKey;
 class CScript;
@@ -24,5 +27,6 @@ CPubKey AddrToPubKey(CKeyStore* const keystore, const std::string& addr_in);
 CScript CreateMultisigRedeemscript(const int required, const std::vector<CPubKey>& pubkeys);
 
 UniValue DescribeAddress(const CTxDestination& dest);
+ 
 
 #endif // BITCOIN_RPC_UTIL_H

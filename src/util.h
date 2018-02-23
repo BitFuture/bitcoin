@@ -27,6 +27,18 @@
 #include <string>
 #include <vector>
 
+#ifndef WIN32
+#ifndef PRIO_MAX
+#define PRIO_MAX 20
+#endif
+#define THREAD_PRIORITY_LOWEST          PRIO_MAX
+#define THREAD_PRIORITY_BELOW_NORMAL    2
+#define THREAD_PRIORITY_NORMAL          0
+#define THREAD_PRIORITY_ABOVE_NORMAL    (-2)
+#endif
+
+
+
 #include <boost/signals2/signal.hpp>
 #include <boost/thread/condition_variable.hpp> // for boost::thread_interrupted
 
@@ -196,7 +208,7 @@ fs::path GetDebugLogPath();
 bool OpenDebugLog();
 void ShrinkDebugFile();
 void runCommand(const std::string& strCommand);
-
+void SetThreadPriority(int nPriority);
 /**
  * Most paths passed as configuration arguments are treated as relative to
  * the datadir if they are not absolute.

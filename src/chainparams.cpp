@@ -261,7 +261,7 @@ public:
         assert(genesis.hashMerkleRoot == uint256S("0x4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b"));
 */
         uint32_t uGenesisTime = GetThisTime(2018,02,23,0,0,0);
-        genesis = CreateGenesisBlockEric(uGenesisTime, 2832721, 0x1e0ffff0, 2, 50 * COIN);
+        genesis = CreateGenesisBlockEric(uGenesisTime, 0, 0x1d00ffff, 2, 50 * COIN);
         MinerGenesisBlockEric(&genesis);
   
         consensus.hashGenesisBlock = genesis.GetHash();  
