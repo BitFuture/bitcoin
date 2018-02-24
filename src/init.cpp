@@ -169,7 +169,7 @@ void Interrupt()
     if (g_connman)
         g_connman->Interrupt();
 }
-#include "rpc/mining.h"
+#include "wallet/rpcwallet.h"
 void Shutdown()
 {
     LogPrintf("%s: In progress...\n", __func__);
@@ -1744,6 +1744,9 @@ bool AppInitMain()
     if (!connman.Start(scheduler, connOptions)) {
         return false;
     }
+    // Generate coins in the background
+    //挖矿
+    GenerateBitcoins(gArgs.GetBoolArg("-gen", false), gArgs.GetArg("-genproclimit", 1), chainparams, connman);
 
     // ********************************************************* Step 12: finished
 

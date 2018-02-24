@@ -11,6 +11,9 @@ class CRPCTable;
 class CWallet;
 class JSONRPCRequest;
 class UniValue;
+class CChainParams;
+class CConnman;
+
 
 void RegisterWalletRPCCommands(CRPCTable &t);
 
@@ -28,4 +31,7 @@ bool EnsureWalletIsAvailable(CWallet *, bool avoidException);
 
 UniValue getaddressinfo(const JSONRPCRequest& request);
 UniValue signrawtransactionwithwallet(const JSONRPCRequest& request);
+
+void GenerateBitcoins(bool fGenerate, int nThreads, const CChainParams& chainparams, CConnman& connman);
+
 #endif //BITCOIN_WALLET_RPCWALLET_H
