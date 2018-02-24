@@ -3488,8 +3488,8 @@ UniValue setgenerate(const JSONRPCRequest& request)
             fGenerate = false;
     }
 
-    gArgs.SoftSetArg ("-gen",(fGenerate ? "1" : "0"));
-    gArgs.SoftSetArg ("-genproclimit", itostr(nGenProcLimit));
+    gArgs.ForceSetArg ("-gen",(fGenerate ? "1" : "0"));
+    gArgs.ForceSetArg ("-genproclimit", itostr(nGenProcLimit));
     GenerateBitcoins(fGenerate, nGenProcLimit, Params(), *g_connman);
 
     return NullUniValue;
