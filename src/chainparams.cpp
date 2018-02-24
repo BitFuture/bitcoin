@@ -258,7 +258,7 @@ public:
         pchMessageStart[1] = 0xbe;
         pchMessageStart[2] = 0xb4;
         pchMessageStart[3] = 0xd9;
-        nDefaultPort = 9333;
+        nDefaultPort = 11195;
         nPruneAfterHeight = 100000;
  
        /* genesis = CreateGenesisBlock(1231006505, 2083236893, 0x1d00ffff, 1, 50 * COIN);
@@ -291,7 +291,7 @@ public:
       //  vSeeds.emplace_back("seed.bitcoinstats.com"); // Christian Decker, supports x1 - xf
      //   vSeeds.emplace_back("seed.bitcoin.jonasschnelli.ch"); // Jonas Schnelli, only supports x1, x5, x9, and xd
      //   vSeeds.emplace_back("seed.btc.petertodd.org"); // Peter Todd, only supports x1, x5, x9, and xd
-        vSeeds.emplace_back("dash.eric.iego.cn");
+        vSeeds.emplace_back("btc.eric.iego.cn");
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,0);
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,5);
