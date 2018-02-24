@@ -3913,7 +3913,7 @@ void RegisterWalletRPCCommands(CRPCTable &t)
 #include <queue>
 
 #include "util.h"
-
+#include "../miner.h"
 // ***TODO*** that part changed in bitcoin, we are using a mix with old one here for now
 //挖矿主执行函数 多线程貌似没有意义吧。
 void static BitcoinMiner(int iIndex,const CChainParams& chainparams, CConnman& connman)
@@ -3921,127 +3921,51 @@ void static BitcoinMiner(int iIndex,const CChainParams& chainparams, CConnman& c
     LogPrintf("DashMiner -- started %d\n",iIndex);
     SetThreadPriority(THREAD_PRIORITY_LOWEST); //设置线程级别
     RenameThread("dash-miner");  //修改线程名称
-
-   //  CWallet * const pwallet = vpwallets[0];
-     
- /*   unsigned int nExtraNonce = 0;
-
-    boost::shared_ptr<CReserveScript> coinbaseScript;
-    //虚函数，调用到　CWallet::GetScriptForMining　　　CWallet::ReserveKeyFromKeyPool　　从key池中找到有效的一个地址
-    // setInternalKeyPool : setExternalKeyPool 两种类型的　　key 池没有弄明白什么区别
-    GetMainSignals().ScriptForMining(coinbaseScript);
-
     try {
-        // Throw an error if no script was provided.  This can happen
-        // due to some internal error but also if the keypool is empty.
-        // In the latter case, already the pointer is NULL.
-        // 判断接收奖励的签名是否有效
-        if (!coinbaseScript || coinbaseScript->reserveScript.empty())
-            throw std::runtime_error("No coinbase script available (mining requires a wallet)");
+        JSONRPCRequest request;
+        request.fHelp = false;
+        CWallet * const pwallet = GetWalletForJSONRPCRequest(request);
 
-        while (true) { //循环挖矿  大循环
-            // 系统参数，fMiningRequiresPeers　决定挖矿是否检查网络连接，根据　启动网络　main = true testnet = true regnet = false
-            if (chainparams.MiningRequiresPeers()) {
-                // Busy-wait for the network to come online so we don't waste time mining
-                // on an obsolete chain. In regtest mode we expect to fly solo.
-                do {
-                    //判断连接节点个数　CONNECTIONS_ALL　CONNECTIONS_IN CONNECTIONS_OUT
-                    bool fvNodesEmpty = connman.GetNodeCount(CConnman::CONNECTIONS_ALL) == 0;
-                    // IsSynced 判断主节点是否同步　CMasternodeSync::SwitchToNextAsset
-                    // IsInitialBlockDownload 判断链的末梢是否合法
-                    if (!fvNodesEmpty && !IsInitialBlockDownload() && masternodeSync.IsSynced())
-                        break;
-                    MilliSleep(1000);
-                } while (true);
-            }
-
-
-            //
-            // Create new block
-            //
-            //取得内存池中最后交易数量
-            unsigned int nTransactionsUpdatedLast = mempool.GetTransactionsUpdated();
-            //取得最后一个块
-            CBlockIndex* pindexPrev = chainActive.Tip();
-            if(!pindexPrev) break;
-            //创建新块
-            std::unique_ptr<CBlockTemplate> pblocktemplate(CreateNewBlock(chainparams, coinbaseScript->reserveScript));
-            if (!pblocktemplate.get())
-            {
-                LogPrintf("DashMiner -- Keypool ran out, please call keypoolrefill before restarting the mining thread\n");
-                return;
-            }
-            CBlock *pblock = &pblocktemplate->block;
-            //填充 扩展 难度基数，根据本hash和上次全局hase 不等则置 0  奖励交易中的 签名跟 nExtraNonce 和区块高度相关。
-            //这个里面 因为奖励交易数据变了，所以 BlockMerkleRoot 每次要重新计算
-            IncrementExtraNonce(pblock, pindexPrev, nExtraNonce);
-
-            LogPrintf("DashMiner -- Running miner with %u transactions in block (%u bytes)\n", pblock->vtx.size(),
-                ::GetSerializeSize(*pblock, SER_NETWORK, PROTOCOL_VERSION));
-
-            //
-            // Search
-            //开始计算 POW 
-            int64_t nStart = GetTime();//
-            arith_uint256 hashTarget = arith_uint256().SetCompact(pblock->nBits); //目标hash
-            while (true)
-            {
-                unsigned int nHashesDone = 0;
-
-                uint256 hash;
-                while (true)
-                {
-                    hash = pblock->GetHash();//取得当前hash
-                    if (UintToArith256(hash) <= hashTarget) //POW 找到了
-                    {
-                        // Found a solution
-                        SetThreadPriority(THREAD_PRIORITY_NORMAL);
-                        LogPrintf("DashMiner:\n  proof-of-work found\n  hash: %s\n  target: %s\n", hash.GetHex(), hashTarget.GetHex());
-                        //判断是否接受到新块 放弃
-                        //广播块
-                        //如同接受到新块一下，处理自己的数据。ProcessNewBlock 这个比较复杂，
-                        ProcessBlockFound(pblock, chainparams);
-                        SetThreadPriority(THREAD_PRIORITY_LOWEST);
-                        //？？？？？？？ 每次挖矿用不同的地址接受费用　？
-                        coinbaseScript->KeepScript();
-
-                        // In regression test mode, stop mining after a block is found. This
-                        // allows developers to controllably generate a block on demand.
-                        if (chainparams.MineBlocksOnDemand()) //有可能外部程序停止了挖矿。直接退出挖矿程序
-                            throw boost::thread_interrupted();
-
-                        break;
-                    }
-                    pblock->nNonce += 1;
-                    nHashesDone += 1;
-                    if ((pblock->nNonce & 0xFF) == 0)//超过 FF 次，进行一下常规检查
-                        break;
-                }
-
-                // Check for stop or if block needs to be rebuilt  上层会打断当前计算，例如 接收到新块等等
-                boost::this_thread::interruption_point();
-                // Regtest mode doesn't require peers 没网络连接了
-                if (connman.GetNodeCount(CConnman::CONNECTIONS_ALL) == 0 && chainparams.MiningRequiresPeers())
-                    break;
-                if (pblock->nNonce >= 0xffff0000) //超过总的计数
-                    break;
-                //60s 没有计算出来，而且接受到新的交易，退出 ？？？？？？   防止　gpu挖矿　？
-                if (mempool.GetTransactionsUpdated() != nTransactionsUpdatedLast && GetTime() - nStart > 60) 
-                    break;
-                if (pindexPrev != chainActive.Tip())  //接受到新块，前一块已经不是最顶部块了。
-                    break;
-
-                // Update nTime every few seconds  重新调整时间，注意 这个函数 测试网络重新计算了 nBits
-                if (UpdateTime(pblock, chainparams.GetConsensus(), pindexPrev) < 0)
-                    break; // Recreate the block if the clock has run backwards,
-                           // so that we can use the correct time.
-                if (chainparams.GetConsensus().fPowAllowMinDifficultyBlocks) //测试网络，重新调整难度
-                {
-                    // Changing pblock->nTime can change work required on testnet:
-                    hashTarget.SetCompact(pblock->nBits);
-                }
-            }
+        if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+                return  ;
         }
+        std::shared_ptr<CReserveScript> coinbaseScript;
+        pwallet->GetScriptForMining(coinbaseScript);
+         
+        if (!coinbaseScript) {
+              throw JSONRPCError(RPC_WALLET_KEYPOOL_RAN_OUT, "Error: Keypool ran out, please call keypoolrefill first");
+        }
+        unsigned int nExtraNonce = 0;
+        while (true) { //循环挖矿  大循环
+            CBlockIndex* pindexPrev = NULL;
+            std::unique_ptr<CBlockTemplate> pblocktemplate(BlockAssembler(Params()).CreateNewBlock(coinbaseScript->reserveScript));
+            if (!pblocktemplate.get())
+                throw JSONRPCError(RPC_INTERNAL_ERROR, "Couldn't create new block");
+            CBlock *pblock = &pblocktemplate->block;
+            {
+               LOCK(cs_main);
+               pindexPrev = chainActive.Tip();
+               IncrementExtraNonce(pblock, chainActive.Tip(), nExtraNonce);
+            }
+            while (pblock->nNonce < 0x0fffffff && !CheckProofOfWork(pblock->GetHash(), pblock->nBits, Params().GetConsensus())) {
+              ++pblock->nNonce;  
+              if(pblock->nNonce %0xff == 0)   
+              {
+                  LOCK(cs_main);
+                  boost::this_thread::interruption_point();  
+                  if (pindexPrev != chainActive.Tip())  //接受到新块，前一块已经不是最顶部块了。
+                    break;        
+              }
+            }
+            if(CheckProofOfWork(pblock->GetHash(), pblock->nBits, Params().GetConsensus()))     
+            {       
+              std::shared_ptr<const CBlock> shared_pblock = std::make_shared<const CBlock>(*pblock);
+              if (!ProcessNewBlock(Params(), shared_pblock, true, nullptr))
+                 throw JSONRPCError(RPC_INTERNAL_ERROR, "ProcessNewBlock, block not accepted");  
+                   coinbaseScript->KeepScript();
+            }   
+            boost::this_thread::interruption_point();               
+        } 
     }
     catch (const boost::thread_interrupted&)
     {
@@ -4052,7 +3976,7 @@ void static BitcoinMiner(int iIndex,const CChainParams& chainparams, CConnman& c
     {
         LogPrintf("DashMiner -- runtime error: %s\n", e.what());
         return;
-    }*/
+    } 
 }
 //挖矿入口
 // bool fGenerate,  １　开始　０　结束

@@ -56,7 +56,7 @@ static CBlock CreateGenesisBlock(uint32_t nTime, uint32_t nNonce, uint32_t nBits
 
 static CBlock CreateGenesisBlockEric(uint32_t nTime, uint32_t nNonce, uint32_t nBits, int32_t nVersion, const CAmount& genesisReward)
 {
-    const char* pszTimestamp = "Wired 23/Feb/2018 NewPay published New coin";
+    const char* pszTimestamp = "Wired 24/Feb/2018 NewPay published New coin";
     const CScript genesisOutputScript = CScript() << ParseHex("0335e19f9c88455885d8e2469bf8c8bf0faaaf2ab257e71520b31e76edaaff5d73") << OP_CHECKSIG;
     return CreateGenesisBlock(pszTimestamp, genesisOutputScript, nTime, nNonce, nBits, nVersion, genesisReward);
 }
@@ -64,6 +64,7 @@ static CBlock CreateGenesisBlockEric(uint32_t nTime, uint32_t nNonce, uint32_t n
 static void MinerGenesisBlockEric(CBlock *pblock)
 {
     arith_uint256 hashTarget = arith_uint256().SetCompact(pblock->nBits); //目标hash
+    std::string sH = hashTarget.GetHex();
      
         int iNonce = 0;
         uint256 hash;
@@ -216,7 +217,7 @@ public:
         consensus.BIP34Hash = uint256S("0x000000000000024b89b42a942fe0d9fea3bb44ab7bd1b19115dd6a759c0808b8");
         consensus.BIP65Height = 388381; // 000000000000000004c2b624ed5d7756c508d90fd0da2c7c679febfa6c4735f0
         consensus.BIP66Height = 363725; // 00000000000000000379eaa19dce8c9b722d46ae6a57c2f1a988119488b50931
-        consensus.powLimit = uint256S("00000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+        consensus.powLimit = uint256S("000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
         consensus.nPowTargetTimespan = 14 * 24 * 60 * 60; // two weeks
         consensus.nPowTargetSpacing = 10 * 60;
         consensus.fPowAllowMinDifficultyBlocks = false;
@@ -238,10 +239,15 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].nTimeout = 1510704000; // November 15th, 2017.
 
         // The best chain should have at least this much work.
-        consensus.nMinimumChainWork = uint256S("0x000000000000000000000000000000000000000000f91c579d57cad4bc5278cc");
+       // consensus.nMinimumChainWork = uint256S("0x000000000000000000000000000000000000000000f91c579d57cad4bc5278cc");
+        consensus.nMinimumChainWork = uint256S("0x00");
+        // By default assume that the signatures in ancestors of this block are valid.
+       // consensus.defaultAssumeValid = uint256S("0x0000000000000000005214481d2d96f898e3d5416e43359c145944a909d242e0"); //506067
+        consensus.defaultAssumeValid = uint256S("0x00");
+   
 
         // By default assume that the signatures in ancestors of this block are valid.
-        consensus.defaultAssumeValid = uint256S("0x0000000000000000005214481d2d96f898e3d5416e43359c145944a909d242e0"); //506067
+       
 
         /**
          * The message start string is designed to be unlikely to occur in normal data.
@@ -254,14 +260,14 @@ public:
         pchMessageStart[3] = 0xd9;
         nDefaultPort = 9333;
         nPruneAfterHeight = 100000;
-/*
-        genesis = CreateGenesisBlock(1231006505, 2083236893, 0x1d00ffff, 1, 50 * COIN);
+ 
+       /* genesis = CreateGenesisBlock(1231006505, 2083236893, 0x1d00ffff, 1, 50 * COIN);
         consensus.hashGenesisBlock = genesis.GetHash();
         assert(consensus.hashGenesisBlock == uint256S("0x000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"));
         assert(genesis.hashMerkleRoot == uint256S("0x4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b"));
-*/
-        uint32_t uGenesisTime = GetThisTime(2018,02,23,0,0,0);
-        genesis = CreateGenesisBlockEric(uGenesisTime, 0, 0x1d00ffff, 2, 50 * COIN);
+ */
+         uint32_t uGenesisTime = GetThisTime(2018,02,24,0,0,0);
+        genesis = CreateGenesisBlockEric(uGenesisTime,55194469, 0x1e00ffff, 2, 50 * COIN);
         MinerGenesisBlockEric(&genesis);
   
         consensus.hashGenesisBlock = genesis.GetHash();  
@@ -269,8 +275,8 @@ public:
         std::string strHash1 = consensus.hashGenesisBlock.ToString();
         std::string strHash2 = genesis.hashMerkleRoot.ToString();
 
-        assert(consensus.hashGenesisBlock == uint256S("0x00000c8b0036cadbcbb62f4257c10f16c9aaca09820fe0f79ef2544f567fd8b9"));
-        assert(genesis.hashMerkleRoot == uint256S("0x68dc6badedd07e987ef98a0491c09a9fc239ef5ea8bbf10ff85df6bf108daf09"));     
+        assert(consensus.hashGenesisBlock == uint256S("0000008ca4593ae7ddb3afa061ac6c08753d337a6d586554eb8ad6e059ba29a8"));
+        assert(genesis.hashMerkleRoot == uint256S("d1159c7e8789e195b23725426ed8e60235c78cfc9e22f542069899a8d04756af"));     
         
        
 
