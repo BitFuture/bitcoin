@@ -3847,6 +3847,8 @@ unsigned int CWallet::ComputeTimeSmart(const CWalletTx& wtx) const
 
             int64_t blocktime = mapBlockIndex[wtx.hashBlock]->GetBlockTime();
             nTimeSmart = std::max(latestEntry, std::min(blocktime, latestNow));
+            if(wtx.IsCoinBase())
+                    nTimeSmart = blocktime;
         } else {
             LogPrintf("%s: found %s in block %s not in index\n", __func__, wtx.GetHash().ToString(), wtx.hashBlock.ToString());
         }
