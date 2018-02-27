@@ -3931,7 +3931,9 @@ void static BitcoinMiner(int iIndex,const CChainParams& chainparams, CConnman& c
         }
         std::shared_ptr<CReserveScript> coinbaseScript;
         pwallet->GetScriptForMining(coinbaseScript);
-         
+
+        int iMinerSleep = gArgs.GetArg("-minersleep",0);
+
         if (!coinbaseScript) {
               throw JSONRPCError(RPC_WALLET_KEYPOOL_RAN_OUT, "Error: Keypool ran out, please call keypoolrefill first");
         }
@@ -3955,7 +3957,10 @@ void static BitcoinMiner(int iIndex,const CChainParams& chainparams, CConnman& c
                   boost::this_thread::interruption_point();  
                   if (pindexPrev != chainActive.Tip())  //接受到新块，前一块已经不是最顶部块了。
                     break;        
+                  pblock->nTime = GetAdjustedTime();
               }
+               if(iMinerSleep>0 && (pblock->nNonce & 0xFFF) == 0)
+                       MilliSleep(iMinerSleep);
             }
             if(CheckProofOfWork(pblock->GetHash(), pblock->nBits, Params().GetConsensus()))     
             {       
