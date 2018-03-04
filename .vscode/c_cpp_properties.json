@@ -36,7 +36,10 @@
                 "/usr/include",
                 "${workspaceRoot}",
                 "${workspaceRoot}/src",
-                "${workspaceRoot}/src/univalue/include"
+                "${workspaceRoot}/src/univalue/include",
+                "/usr/include/boost/compatibility/cpp_c_headers",
+                "/usr/include/boost/tr1/tr1",
+                "/usr/include/linux"
             ],
             "defines": [],
             "intelliSenseMode": "clang-x64",
